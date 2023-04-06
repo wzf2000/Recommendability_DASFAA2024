@@ -1,0 +1,8 @@
+.DS_Store
+.vscode
+log
+node_modules
+npm-debug.log
+runs
+__pycache__
+dataset/*

@@ -1,0 +1,22 @@
+# dataset
+dataset: DuRecDial
+language: zh # zh/en
+tokenize: bert
+# dataloader
+context_truncate: 256
+response_truncate: 30
+item_truncate: 100
+scale: 1
+# model
+model: ConvBERT
+# optim
+policy:
+  epoch: 5
+  batch_size: 8
+  weight_decay: 0.01
+  optimizer:
+    name: AdamW
+    lr: !!float 1e-5
+  early_stop: true
+  stop_mode: max
+  impatience: 3
