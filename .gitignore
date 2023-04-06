@@ -6,3 +6,6 @@ npm-debug.log
 runs
 __pycache__
 dataset/*
+!dataset/DuRecDial2.0
+dataset/DuRecDial2.0/*.json
+dataset/DuRecDial2.0/*.pkl
