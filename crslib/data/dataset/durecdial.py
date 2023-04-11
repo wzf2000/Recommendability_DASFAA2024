@@ -17,6 +17,7 @@ class MyDuRecDialDataset(BaseDataset):
         dpath = os.path.join('dataset', 'DuRecDial2.0')
         self.language = opt['language']
         self.opt = opt
+        self.tokenize = tokenize
         self.dpath = dpath
 
         if not restore:
@@ -32,7 +33,7 @@ class MyDuRecDialDataset(BaseDataset):
                 logger.debug(f'[Load pretrained embedding {embedding}]')
             logger.info('[Finish data preprocess]')
         else:
-            self.train_data, self.valid_data, self.test_data, self.side_data = self._load_from_restore(file_name=f"{self.language}_{self.opt['tokenize']}_all_data.pkl")
+            self.train_data, self.valid_data, self.test_data, self.side_data = self._load_from_restore(file_name=f"{self.language}_{self.tokenize}_all_data.pkl")
             self.vocab = self._load_vocab()
 
         def count_label(dataset):
@@ -48,7 +49,7 @@ class MyDuRecDialDataset(BaseDataset):
 
         if save:
             data = (self.train_data, self.valid_data, self.test_data, self.side_data)
-            self._save_to_one(data, file_name=f"{self.language}_{self.opt['tokenize']}_all_data.pkl")
+            self._save_to_one(data, file_name=f"{self.language}_{self.tokenize}_all_data.pkl")
     
     def _load_data(self):
         train_data, valid_data, test_data = self._load_raw_data()
@@ -78,20 +79,20 @@ class MyDuRecDialDataset(BaseDataset):
 
     def _load_vocab(self):
         # default to use BERT
-        if self.opt['tokenize'] == 'bert':
+        if self.tokenize == 'bert':
             if self.language == 'zh':
                 self.tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
             elif self.language == 'en':
                 self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
             else:
                 raise NotImplementedError
-        elif self.opt['tokenize'] == 'gpt2':
+        elif self.tokenize == 'gpt2':
             if self.language == 'zh':
                 resource = resources['gpt2']
                 self.special_token_idx = resource['special_token_idx']
                 self.unk_token_idx = self.special_token_idx['unk']
                 dpath = os.path.join(DATASET_PATH, 'durecdial', 'gpt2')
-                dfile = dpath['file']
+                dfile = resource['file']
                 build(dpath, dfile, version=resource['version'])
                 self.tok2ind = json.load(open(os.path.join(dpath, 'token2id.json'), 'r', encoding='utf-8'))
                 self.ind2tok = {idx: word for word, idx in self.tok2ind.items()}
@@ -105,11 +106,15 @@ class MyDuRecDialDataset(BaseDataset):
                 raise NotImplementedError
         else:
             raise NotImplementedError
-        if self.language =='zh' and self.opt['tokenize'] == 'gpt2':
+        if self.language =='zh' and self.tokenize == 'gpt2':
             pass
         else:
-            self.ind2tok = self.tokenizer.ids_to_tokens
-            self.tok2ind = bidict(self.ind2tok).inverse
+            if self.tokenize == 'gpt2':
+                self.tok2ind = self.tokenizer.get_vocab()
+                self.ind2tok = bidict(self.tok2ind).inverse
+            else:
+                self.ind2tok = self.tokenizer.ids_to_tokens
+                self.tok2ind = bidict(self.ind2tok).inverse
 
             logger.debug(f"[Load vocab from {self.tokenizer.name_or_path}]")
             logger.debug(f"[The size of token2index dictionary is {len(self.tok2ind)}]")
