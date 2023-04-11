@@ -66,24 +66,24 @@ class RecommendableSystem(BaseSystem):
             # Write a function to translate the index sequence to the token sequence
             def index2token(index: torch.Tensor):
                 return self.vocab['ind2tok'][index.detach().cpu().numpy().tolist()]
-            if flag:
-                continue
-            if (predict_value > 0.5) ^ (label_goal == 1) == 1:
-                self.vocab['ind2tok']
-                print(*[index2token(utt) for utt in batch[0][i]], sep='')
-                print('-----------------')
-                while True:
-                    test = input('>>> ')
-                    if test == 'x':
-                        flag = True
-                        break
-                    elif test != 'q':
-                        try:
-                            exec(f'print({test})')
-                        except Exception as e:
-                            print(str(e))
-                    else:
-                        break
+            # if flag:
+            #     continue
+            # if (predict_value > 0.5) ^ (label_goal == 1) == 1:
+            #     print(*[index2token(utt) for utt in batch[0][i]], sep='')
+            #     print(f'predict: {predict_value}, label: {label_goal}')
+            #     print('-----------------')
+            #     while True:
+            #         test = input('>>> ')
+            #         if test == 'x':
+            #             flag = True
+            #             break
+            #         elif test != 'q':
+            #             try:
+            #                 exec(f'print({test})')
+            #             except Exception as e:
+            #                 print(str(e))
+            #         else:
+            #             break
 
     def step(self, batch, stage, mode):
         #! new task

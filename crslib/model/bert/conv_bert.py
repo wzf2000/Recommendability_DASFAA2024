@@ -22,9 +22,10 @@ class ConvBERTModel(BaseModel):
             side_data (dict): A dictionary record the side data.
         
         """
-        language = dataset_language_map[opt['dataset']]
-        resource = resources['bert'][language]
-        dpath = os.path.join(PRETRAIN_PATH, "bert", language)
+        language = opt['language']
+        assert opt['tokenize'] in ['bert', 'gpt2']
+        resource = resources[opt['tokenize']][language]
+        dpath = os.path.join(PRETRAIN_PATH, opt['tokenize'], language)
         super().__init__(opt, device, dpath, resource)
 
     def build_model(self, *args, **kwargs):

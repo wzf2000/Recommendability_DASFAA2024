@@ -22,7 +22,7 @@ class ProfileBERTModel(BaseModel):
             side_data (dict): A dictionary record the side data.
         
         """
-        language = dataset_language_map[opt['dataset']]
+        language = opt['language']
         resource = resources['bert'][language]
         dpath = os.path.join(PRETRAIN_PATH, "bert", language)
         super().__init__(opt, device, dpath, resource)

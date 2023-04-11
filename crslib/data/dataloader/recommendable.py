@@ -3,23 +3,47 @@ from crslab.data.dataloader import BaseDataLoader
 from crslab.data.dataloader.utils import add_start_end_token_idx, padded_tensor, truncate, merge_utt
 from tqdm import tqdm
 from copy import deepcopy
+from loguru import logger
 
 class RecommendableDataLoader(BaseDataLoader):
     def __init__(self, opt, dataset, vocab):
         super().__init__(opt, dataset)
+
         self.vocab = vocab
-        self.pad_token_idx = vocab['pad_token']
-        self.cls_id = vocab['cls_token']
-        self.start_token_idx = self.cls_id
-        self.sep_id = vocab['sep_token']
-        self.unk_token_idx = vocab['unk_token']
-        self.conv_bos_id = self.cls_id
-        self.end_token_idx = self.sep_id
-        self.sent_split_idx = self.sep_id
+        self.pad_token_idx = vocab['pad']
+        self.start_token_idx = vocab['start']
+        self.end_token_idx = vocab['end']
+        self.unk_token_idx = vocab['unk']
+        self.conv_bos_id = vocab['start']
+        self.cls_id = vocab['start']
+        self.sep_id = vocab['end']
+        if 'sent_split' in vocab:
+            self.sent_split_idx = vocab['sent_split']
+        else:
+            self.sent_split_idx = vocab['end']
+        if 'word_split' in vocab:
+            self.word_split_idx = vocab['word_split']
+        else:
+            self.word_split_idx = vocab['end']
+
+        self.pad_entity_idx = vocab['pad_entity']
+        self.pad_word_idx = vocab['pad_word']
+        if 'pad_topic' in vocab:
+            self.pad_topic_idx = vocab['pad_topic']
+
+        self.tok2ind = vocab['tok2ind']
+        self.ind2tok = vocab['ind2tok']
+        if 'id2entity' in vocab:
+            self.id2entity = vocab['id2entity']
+        if 'ind2topic' in vocab:
+            self.ind2topic = vocab['ind2topic']
 
         self.context_truncate = opt.get('context_truncate', None)
         self.response_truncate = opt.get('response_truncate', None)
+        self.entity_truncate = opt.get('entity_truncate', None)
+        self.word_truncate = opt.get('word_truncate', None)
         self.item_truncate = opt.get('item_truncate', None)
+        logger.info(f'[Dataset length is {len(self.dataset)}]')
 
     def get_recommendable_data(self, batch_size, shuffle=True):
         return self.get_data(self.recommendable_batchify, batch_size, shuffle, self.recommendable_process_fn)

@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from crslab.config import Config
 from crslab.data.dataloader import *
 from crslab.data.dataset import *
@@ -8,9 +9,18 @@ from crslib.system import RecommendableSystem
 
 
 def run():
-    config = Config('test.yaml', '2', False)
+    parser = ArgumentParser()
+    # Add gpu option
+    parser.add_argument('--gpu', type=str, default='0', help='gpu id')
+    parser.add_argument('--restore', action='store_true', help='restore model')
+    parser.add_argument('--save', action='store_true', help='save model')
+    parser.add_argument('--config', type=str, default='test.yaml', help='config file')
+    # parser.add_argument('--interact', action='store_true', help='interact with model')
+    args = parser.parse_args()
+
+    config = Config(args.config, args.gpu, False)
     # get_dataset()
-    dataset = MyDuRecDialDataset(opt=config, tokenize=config['tokenize'], restore=True, save=False)
+    dataset = MyDuRecDialDataset(opt=config, tokenize=config['tokenize'], restore=args.restore, save=args.save)
     side_data = dataset.side_data
     vocab = dataset.vocab
 
