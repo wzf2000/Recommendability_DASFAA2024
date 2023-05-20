@@ -1,0 +1,10 @@
+.DS_Store
+.vscode
+log
+checkpoint
+__pycache__
+datasets/*
+!datasets/DuRecDial
+datasets/DuRecDial/*.json
+!datasets/JDDC
+
