@@ -7,12 +7,13 @@ from loguru import logger
 from prompt_tuning.utils import *
 from prompt_tuning.data import *
 
+metric = combine(["accuracy", "f1", "precision", "recall", "roc_auc"])
+logger.info("Metric loading complete.")
+
 # Cacluate the accuracy, precision and recall of the model
 def evaluate(model: PromptForClassification, dataloader: PromptDataLoader):
     logger.info("Evaluating model...")
     model.eval()
-    metric = combine(["accuracy", "f1", "precision", "recall", "roc_auc"])
-    logger.info("Metric loading complete.")
     refs = []
     predition_scores = []
     predictions = []
@@ -34,12 +35,13 @@ def evaluate(model: PromptForClassification, dataloader: PromptDataLoader):
     logger.info(f"Evaluate Precision: {result['precision']}")
     logger.info(f"Evaluate Recall: {result['recall']}")
     logger.info(f"Evaluate Accuracy: {result['accuracy']}")
-    return result['accuracy']
+    return result['f1']
 
 def train(model: PromptForClassification, dataloader: PromptDataLoader, val_dataloader: PromptDataLoader, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LambdaLR, opt):
-    best_acc = 0
+    best_metric = 0
     best_epoch = -1
     loss_func = torch.nn.CrossEntropyLoss()
+    torch.save(model.state_dict(), f'checkpoint/{opt.dataset}/{opt.language if opt.dataset == "DuRecDial" else opt.split}_{opt.model}-{opt.size}_tempate={opt.template}_best_model.pt')
     for epoch in range(5):
         model.train()
         for batch in tqdm(dataloader):
@@ -52,18 +54,19 @@ def train(model: PromptForClassification, dataloader: PromptDataLoader, val_data
             optimizer.step()
             scheduler.step()
         logger.info(f"Epoch {epoch} finished, evaluating...")
-        acc = evaluate(model, val_dataloader)
-        if acc > best_acc:
-            best_acc = acc
+        metric = evaluate(model, val_dataloader)
+        if metric > best_metric:
+            best_metric = metric
             best_epoch = epoch
-            torch.save(model.state_dict(), f'checkpoint/{opt.language}_{opt.model}-{opt.size}_best_model.pt')
+            torch.save(model.state_dict(), f'checkpoint/{opt.dataset}/{opt.language if opt.dataset == "DuRecDial" else opt.split}_{opt.model}-{opt.size}_tempate={opt.template}_best_model.pt')
         # early stop
         if epoch - best_epoch >= 3:
             break
 
 def main():
+    set_seed(2023)
     args = parse()
-    datasets = get_datasets(args.dataset, args.language, args.zero_shot)
+    datasets = get_datasets(args.dataset, args.language, args.split, args.zero_shot)
     logger.info(f'[task loading completed]')
     plm, tokenizer, model_config, WrapperClass = get_backbone(args.model, args.language, args.size)
     logger.info(f'[backbone loading completed]')
@@ -85,7 +88,7 @@ def main():
         train(model, dataloaders[0], dataloaders[1], optimizer, scheduler, args)
         logger.info(f'[training completed]')
         # load the best model
-        model.load_state_dict(torch.load(f'checkpoint/{args.language}_{args.model}-{args.size}_best_model.pt'))
+        model.load_state_dict(torch.load(f'checkpoint/{args.dataset}/{args.language if args.dataset == "DuRecDial" else args.split}_{args.model}-{args.size}_tempate={args.template}_best_model.pt'))
         evaluate(model, dataloaders[2])
 
 if __name__ == "__main__":

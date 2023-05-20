@@ -3,16 +3,16 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from loguru import logger
 from copy import copy
-from typing import List, Tuple
+from typing import List
 import re
-from ..utils import read_data
+from ..utils import read_txt_data
 
 class DuRecDialDataset(Dataset):
     def __init__(self, language: str, phase: str) -> None:
         super().__init__()
         self.language = language
         self.phase = phase
-        raw_data = read_data(f'datasets/DuRecDial/{self.language}_{self.phase}.txt')
+        raw_data = read_txt_data(f'datasets/DuRecDial/{self.language}_{self.phase}.txt')
         self.data = self.process_data(raw_data)
         logger.info(f'[process data from {self.phase} completed]')
         logger.info(f'[{self.phase} data size: {len(self.data)}]]')
@@ -23,7 +23,7 @@ class DuRecDialDataset(Dataset):
                 text_a=sample['context'],
                 label=sample['label']
             ))
-        logger.info(f'[save processed data to data/{self.language}_{self.phase}_processed.json completed]')
+        # logger.info(f'[save processed data to data/{self.language}_{self.phase}_processed.json completed]')
 
     def __getitem__(self, index: int) -> InputExample:
         return self.dataset[index]

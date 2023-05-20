@@ -23,7 +23,11 @@ def get_backbone(model_name: str, language: str, size: str) -> Tuple[PreTrainedM
             plm, tokenizer, model_config, WrapperClass = load_plm("t5", f"t5-{size}")
     elif model_name == 'gpt2':
         if language == 'zh':
-            raise Exception(f'Unsupported language {language} for gpt2!')
+            assert size in ['base', 'xl']
+            if size == 'base':
+                plm, tokenizer, model_config, WrapperClass = load_plm("gpt2", "IDEA-CCNL/Wenzhong-GPT2-110M")
+            else:
+                plm, tokenizer, model_config, WrapperClass = load_plm("gpt2", "IDEA-CCNL/Wenzhong2.0-GPT2-3.5B-chinese")
         else:
             assert size in ['base', 'medium', 'large', 'xl']
             if size == 'base':
@@ -32,7 +36,11 @@ def get_backbone(model_name: str, language: str, size: str) -> Tuple[PreTrainedM
                 plm, tokenizer, model_config, WrapperClass = load_plm("gpt2", f"gpt2-{size}")
     elif model_name == 'roberta':
         if language == 'zh':
-            raise Exception(f'Unsupported language {language} for roberta!')
+            assert size in ['base', 'large']
+            if size == 'base':
+                plm, tokenizer, model_config, WrapperClass = load_plm("bert", "IDEA-CCNL/Erlangshen-Roberta-110M-Sentiment")
+            else:
+                plm, tokenizer, model_config, WrapperClass = load_plm("bert", "IDEA-CCNL/Erlangshen-Roberta-330M-Sentiment")
         else:
             assert size in ['base', 'large']
             plm, tokenizer, model_config, WrapperClass = load_plm("roberta", f"roberta-{size}")
@@ -50,8 +58,6 @@ def get_backbone(model_name: str, language: str, size: str) -> Tuple[PreTrainedM
     else:
         raise Exception(f'Unsupported model {model_name}!')
     return plm, tokenizer, model_config, WrapperClass
-
-
 
 def get_model(template: ManualTemplate, verbalizer: One2oneVerbalizer, plm: PreTrainedModel) -> PromptForClassification:
     return PromptForClassification(

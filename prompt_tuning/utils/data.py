@@ -6,7 +6,18 @@ from openprompt.prompts import ManualTemplate
 from openprompt.data_utils import InputExample
 from ..plms import GLMTokenizerWrapper
 
+def count_pos(dataset: List[InputExample]) -> int:
+    pos = 0
+    for example in dataset:
+        if example.label == 1:
+            pos += 1
+    return pos
+
 def get_dataloader(tokenizer: PreTrainedTokenizer, dataset: List[InputExample], template: ManualTemplate, WrapperClass, batch_size: int) -> PromptDataLoader:
+    logger.info(f"[Dataset size: {len(dataset)}]")
+    pos_num = count_pos(dataset)
+    logger.info(f"[Dataset positive num: {pos_num}]")
+    logger.info(f"[Dataset positive ratio: {pos_num / len(dataset)}]")
     if WrapperClass == GLMTokenizerWrapper:
         loader = PromptDataLoader(
             dataset=dataset,
@@ -34,6 +45,6 @@ def get_dataloader(tokenizer: PreTrainedTokenizer, dataset: List[InputExample], 
             template=template,
             batch_size=batch_size,
             tokenizer_wrapper_class=WrapperClass,
-            max_seq_length=1024,
+            max_seq_length=512,
         )
     return loader
