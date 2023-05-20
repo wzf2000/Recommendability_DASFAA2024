@@ -12,10 +12,12 @@ from transformers import AutoTokenizer, BertTokenizer, GPT2Tokenizer, DebertaTok
 import numpy as np
 import re
 
-class MyDuRecDialDataset(BaseDataset):
-    def __init__(self, opt, tokenize, restore=False, save=False):
-        dpath = os.path.join('dataset', 'DuRecDial2.0')
+class JDDCDataset(BaseDataset):
+    def __init__(self, opt, tokenize, restore=False, save=False, split=1):
+        dpath = os.path.join('dataset', 'JDDC2.1')
         self.language = opt['language']
+        assert self.language == 'zh'
+        self.split = split
         self.opt = opt
         self.tokenize = tokenize
         self.dpath = dpath
@@ -58,68 +60,46 @@ class MyDuRecDialDataset(BaseDataset):
 
         return train_data, valid_data, test_data, vocab
     
-    def _load_from_txt(self, file_name: str):
+    def _load_from_json(self, file_name: str):
         with open(file_name, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            data_list = []
-            for line in lines:
-                data = json.loads(line)
-                data_list.append(data)
-            return data_list
+            data = json.load(f)
+        return data
 
     def _load_raw_data(self):
-        train_data = self._load_from_txt(os.path.join(self.dpath, f'{self.language}_train.txt'))
-        logger.debug(f"[Load train data from {os.path.join(self.dpath, f'{self.language}_train.txt')}]")
-        valid_data = self._load_from_txt(os.path.join(self.dpath, f'{self.language}_dev.txt'))
-        logger.debug(f"[Load valid data from {os.path.join(self.dpath, f'{self.language}_dev.txt')}]")
-        test_data = self._load_from_txt(os.path.join(self.dpath, f'{self.language}_test.txt'))
-        logger.debug(f"[Load test data from {os.path.join(self.dpath, f'{self.language}_test.txt')}]")
+        train_data = self._load_from_json(os.path.join(self.dpath, f'{self.split}_train.json'))
+        logger.debug(f"[Load train data from {os.path.join(self.dpath, f'{self.split}_train.json')}]")
+        valid_data = self._load_from_json(os.path.join(self.dpath, f'{self.split}_dev.json'))
+        logger.debug(f"[Load valid data from {os.path.join(self.dpath, f'{self.split}_dev.json')}]")
+        test_data = self._load_from_json(os.path.join(self.dpath, f'{self.split}_test.json'))
+        logger.debug(f"[Load test data from {os.path.join(self.dpath, f'{self.split}_test.json')}]")
 
         return train_data, valid_data, test_data
 
     def _load_vocab(self):
         # default to use BERT
         if self.tokenize == 'bert':
-            if self.language == 'zh':
-                self.tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-            elif self.language == 'en':
-                self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-            else:
-                raise NotImplementedError
+            self.tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
         elif self.tokenize == 'deberta':
-            if self.language == 'en':
-                self.tokenizer = DebertaTokenizer.from_pretrained('microsoft/deberta-base')
-            elif self.language == 'zh':
-                self.tokenizer = AutoTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-DeBERTa-v2-186M-Chinese-SentencePiece', use_fast=False, cache_dir='./cache/')
-            else:
-                raise NotImplementedError
+            self.tokenizer = AutoTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-DeBERTa-v2-186M-Chinese-SentencePiece', use_fast=False, cache_dir='./cache/')
         elif self.tokenize == 'roberta':
-            if self.language == 'en':
-                self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-            else:
-                # self.tokenizer = BertTokenizer.from_pretrained('hfl/chinese-roberta-wwm-ext')
-                self.tokenizer = BertTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-Roberta-110M-Sentiment')
+            # self.tokenizer = BertTokenizer.from_pretrained('hfl/chinese-roberta-wwm-ext')
+            self.tokenizer = BertTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-Roberta-110M-Sentiment')
         elif self.tokenize == 'gpt2':
-            if self.language == 'zh':
-                resource = resources['gpt2']
-                self.special_token_idx = resource['special_token_idx']
-                self.unk_token_idx = self.special_token_idx['unk']
-                dpath = os.path.join(DATASET_PATH, 'durecdial', 'gpt2')
-                dfile = resource['file']
-                build(dpath, dfile, version=resource['version'])
-                self.tok2ind = json.load(open(os.path.join(dpath, 'token2id.json'), 'r', encoding='utf-8'))
-                self.ind2tok = {idx: word for word, idx in self.tok2ind.items()}
+            resource = resources['gpt2']
+            self.special_token_idx = resource['special_token_idx']
+            self.unk_token_idx = self.special_token_idx['unk']
+            dpath = os.path.join(DATASET_PATH, 'durecdial', 'gpt2')
+            dfile = resource['file']
+            build(dpath, dfile, version=resource['version'])
+            self.tok2ind = json.load(open(os.path.join(dpath, 'token2id.json'), 'r', encoding='utf-8'))
+            self.ind2tok = {idx: word for word, idx in self.tok2ind.items()}
 
-                logger.debug(f"[Load vocab from {os.path.join(dpath, 'token2id.json')}]")
-                logger.debug(f"[The size of token2index dictionary is {len(self.tok2ind)}]")
-                logger.debug(f"[The size of index2token dictionary is {len(self.ind2tok)}]")
-            elif self.language == 'en':
-                self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-            else:
-                raise NotImplementedError
+            logger.debug(f"[Load vocab from {os.path.join(dpath, 'token2id.json')}]")
+            logger.debug(f"[The size of token2index dictionary is {len(self.tok2ind)}]")
+            logger.debug(f"[The size of index2token dictionary is {len(self.ind2tok)}]")
         else:
             raise NotImplementedError
-        if self.language =='zh' and self.tokenize == 'gpt2':
+        if self.tokenize == 'gpt2':
             pass
         else:
             if self.tokenize == 'bert':
@@ -163,12 +143,7 @@ class MyDuRecDialDataset(BaseDataset):
         vocab = {
             'tok2ind': self.tok2ind,
             'ind2tok': self.ind2tok,
-            # 'entity2id': self.entity2id,
-            # 'id2entity': self.id2entity,
-            # 'word2id': self.word2id,
             'vocab_size': len(self.tok2ind),
-            # 'n_entity': self.n_entity,
-            # 'n_word': self.n_word,
         }
         vocab.update(self.special_token_idx)
         return vocab
@@ -204,63 +179,36 @@ class MyDuRecDialDataset(BaseDataset):
 
     def _convert_to_id(self, conversation):
         augmented_convs = []
-        if self.language == 'zh':
-            # 0: Recommender, 1: Seeker
-            if conversation['goal_type_list'][0] == '寒暄':
-                last_role = 1
-            else:
-                last_role = 0
-        else:
-            if conversation['goal_type_list'][0] == 'Greetings':
-                last_role = 1
-            else:
-                last_role = 0
-        for utt_id, utt in enumerate(conversation['conversation']):
-            utt_role = last_role ^ 1
+        for utt_id, utt in enumerate(conversation['dialogs']):
+            utt_role = conversation['roles'][utt_id]
 
-            res = re.findall(r'\[[0-9]*\]', utt)
-            prefix = 0 if len(res) == 0 else len(res[0])
-            utt = utt[prefix:]
             text_token_ids = [self._tokenize_text(utt)][1:]
 
-            user_profile: dict = conversation['user_profile']
-            user_profile = [f"我的 {key}: {','.join(value)}" if isinstance(value, list) else f"我的 {key}: {value}" for key, value in user_profile.items()]
-            user_profile = [self._tokenize_text(sent)[1:] for sent in user_profile]
-
             augmented_convs.append({
-                'role': 'Seeker' if utt_role == 1 else 'Recommender',
+                'role': utt_role,
                 'text': text_token_ids,
-                'user_profile': user_profile,
-                'goal': conversation['goal_type_list'][utt_id],
+                'label': conversation['binary_labels'][utt_id],
             })
-            last_role = utt_role
 
         return augmented_convs
 
     def _augment_and_add(self, raw_conv_dict):
         augmented_conv_dicts = []
         context_tokens = []
-        context_goals = []
-        last_rec = ''
+        last_role = None
         for conv in raw_conv_dict:
             text_tokens = conv['text']
-            if len(context_tokens) > 0 and conv['role'] == 'Recommender':
-                if ('推荐' not in conv['goal'] and 'recommendation' not in conv['goal']) or conv['goal'] != last_rec:
-                    conv_dict = {
-                        'role': conv['role'],
-                        'context_tokens': copy(context_tokens),
-                        'context_goals': [self._tokenize_text(context_goal)[1:] for context_goal in context_goals],
-                        'response': text_tokens,
-                        'user_profile': conv['user_profile'],
-                        'label': 1 if '推荐' in conv['goal'] or 'recommendation' in conv['goal'] else 0,
-                    }
-                    augmented_conv_dicts.append(conv_dict)
-            
-            if '推荐' in conv['goal'] or 'recommendation' in conv['goal']:
-                last_rec = conv['goal']
+            if len(context_tokens) > 0 and conv['role'] == '客服' and last_role == '顾客':
+                conv_dict = {
+                    'role': conv['role'],
+                    'context_tokens': copy(context_tokens),
+                    'response': text_tokens,
+                    'label': conv['label'],
+                }
+                augmented_conv_dicts.append(conv_dict)
 
             context_tokens.append(text_tokens)
-            context_goals.append(conv['goal'])
+            last_role = conv['role']
 
         return augmented_conv_dicts
 

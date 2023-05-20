@@ -2,10 +2,14 @@ from loguru import logger
 import torch
 
 from .bert import *
+from .gpt2 import *
+from .deberta import *
 
 Model_register_table = {
     'ConvBERT': ConvBERTModel,
     'ProfileBERT': ProfileBERTModel,
+    'ConvGPT2': ConvGPT2Model,
+    'ConvDeBERTa': ConvDeBERTaModel,
 }
 
 

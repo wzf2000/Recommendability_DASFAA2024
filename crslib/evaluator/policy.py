@@ -15,6 +15,7 @@ class PolicyEvaluator(BaseEvaluator):
         super().__init__()
         self.acc_metrics = Metrics()
         self.optim_metrics = Metrics()
+        self.F1 = None
         self.tensorboard = tensorboard
         if self.tensorboard:
             self.writer = SummaryWriter(log_dir='runs/' + time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()))
@@ -32,6 +33,16 @@ class PolicyEvaluator(BaseEvaluator):
 
     def report(self, epoch=-1, mode='test'):
         reports = [self.acc_metrics.report(), self.optim_metrics.report()]
+        if 'Precision' in reports[0] and 'Recall' in reports[0]:
+            Precision = reports[0]['Precision']
+            Recall = reports[0]['Recall']
+            if Precision.value() + Recall.value() > 0:
+                self.F1 = 2 * Precision.value() * Recall.value() / (Precision.value() + Recall.value())
+            else:
+                self.F1 = 0
+            logger.info(f'[Evaluation report: F1 = {self.F1}]')
+        else:
+            self.F1 = 0
         if self.tensorboard and mode != 'test':
             for idx, task_report in enumerate(reports):
                 for each_metric, value in task_report.items():

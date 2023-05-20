@@ -138,7 +138,7 @@ class RecommendableSystem(BaseSystem):
                     self.step(batch, stage='recommendable', mode='val')
                 self.evaluator.report(epoch=epoch, mode='val')
                 # early stop
-                metric = self.evaluator.acc_metrics['Accuracy']
+                metric = self.evaluator.F1
                 if self.early_stop(metric):
                     break
         # test

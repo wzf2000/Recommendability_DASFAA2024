@@ -4,8 +4,13 @@ log
 node_modules
 npm-debug.log
 runs
+cache
 __pycache__
 dataset/*
+!dataset/JDDC2.1
+dataset/JDDC2.1/*.ipynb
+dataset/JDDC2.1/*.xlsx
+dataset/JDDC2.1/*.pkl
 !dataset/DuRecDial2.0
 dataset/DuRecDial2.0/*.json
 dataset/DuRecDial2.0/*.pkl

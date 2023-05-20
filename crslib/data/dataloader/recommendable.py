@@ -66,22 +66,28 @@ class RecommendableDataLoader(BaseDataLoader):
             )
             batch_context.append(context)
 
-            # [goal, goal, ..., goal]
-            context_goals = conv_dict['context_goals']
-            context_goals = merge_utt(context_goals, None, False, None)
-            context_goals = add_start_end_token_idx(
-                context_goals,
-                start_token_idx=self.cls_id,
-            )
-            batch_context_goal.append(context_goals)
+            if 'context_goals' not in conv_dict:
+                batch_context_goal.append([self.pad_token_idx])
+            else:
+                # [goal, goal, ..., goal]
+                context_goals = conv_dict['context_goals']
+                context_goals = merge_utt(context_goals, None, False, None)
+                context_goals = add_start_end_token_idx(
+                    context_goals,
+                    start_token_idx=self.cls_id,
+                )
+                batch_context_goal.append(context_goals)
 
-            user_profile = conv_dict['user_profile']
-            user_profile = merge_utt(user_profile, None, False, None)
-            user_profile = add_start_end_token_idx(
-                truncate(user_profile, max_length=self.context_truncate - 1, truncate_tail=False),
-                start_token_idx=self.cls_id,
-            )
-            batch_user_profile.append(user_profile)
+            if 'user_profile' not in conv_dict:
+                batch_user_profile.append([self.pad_token_idx])
+            else:
+                user_profile = conv_dict['user_profile']
+                user_profile = merge_utt(user_profile, None, False, None)
+                user_profile = add_start_end_token_idx(
+                    truncate(user_profile, max_length=self.context_truncate - 1, truncate_tail=False),
+                    start_token_idx=self.cls_id,
+                )
+                batch_user_profile.append(user_profile)
 
             batch_label.append(conv_dict['label'])
 
