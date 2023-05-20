@@ -13,9 +13,9 @@ Model_register_table = {
 }
 
 
-def get_model(config, model_name, device, vocab, side_data=None):
+def get_model(config, model_name, device, side_data=None):
     if model_name in Model_register_table:
-        model = Model_register_table[model_name](config, device, vocab, side_data)
+        model = Model_register_table[model_name](config, device, side_data)
         logger.info(f'[Build model {model_name}]')
         if config.opt["gpu"] == [-1]:
             return model

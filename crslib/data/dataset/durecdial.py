@@ -22,7 +22,7 @@ class MyDuRecDialDataset(BaseDataset):
 
         if not restore:
             # load and process
-            train_data, valid_data, test_data, self.vocab = self._load_data()
+            train_data, valid_data, test_data = self._load_data()
             logger.info('[Finish data load]')
             self.train_data, self.valid_data, self.test_data, self.side_data = self._data_preprocess(train_data,
                                                                                                      valid_data,
@@ -34,7 +34,6 @@ class MyDuRecDialDataset(BaseDataset):
             logger.info('[Finish data preprocess]')
         else:
             self.train_data, self.valid_data, self.test_data, self.side_data = self._load_from_restore(file_name=f"{self.language}_{self.tokenize}_all_data.pkl")
-            self.vocab = self._load_vocab()
 
         def count_label(dataset):
             cnt = 0
@@ -53,10 +52,9 @@ class MyDuRecDialDataset(BaseDataset):
     
     def _load_data(self):
         train_data, valid_data, test_data = self._load_raw_data()
-        vocab = self._load_vocab()
         self._load_other_data()
 
-        return train_data, valid_data, test_data, vocab
+        return train_data, valid_data, test_data
     
     def _load_from_txt(self, file_name: str):
         with open(file_name, 'r', encoding='utf-8') as f:
@@ -76,102 +74,6 @@ class MyDuRecDialDataset(BaseDataset):
         logger.debug(f"[Load test data from {os.path.join(self.dpath, f'{self.language}_test.txt')}]")
 
         return train_data, valid_data, test_data
-
-    def _load_vocab(self):
-        # default to use BERT
-        if self.tokenize == 'bert':
-            if self.language == 'zh':
-                self.tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-            elif self.language == 'en':
-                self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-            else:
-                raise NotImplementedError
-        elif self.tokenize == 'deberta':
-            if self.language == 'en':
-                self.tokenizer = DebertaTokenizer.from_pretrained('microsoft/deberta-base')
-            elif self.language == 'zh':
-                self.tokenizer = AutoTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-DeBERTa-v2-186M-Chinese-SentencePiece', use_fast=False, cache_dir='./cache/')
-            else:
-                raise NotImplementedError
-        elif self.tokenize == 'roberta':
-            if self.language == 'en':
-                self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-            else:
-                # self.tokenizer = BertTokenizer.from_pretrained('hfl/chinese-roberta-wwm-ext')
-                self.tokenizer = BertTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-Roberta-110M-Sentiment')
-        elif self.tokenize == 'gpt2':
-            if self.language == 'zh':
-                resource = resources['gpt2']
-                self.special_token_idx = resource['special_token_idx']
-                self.unk_token_idx = self.special_token_idx['unk']
-                dpath = os.path.join(DATASET_PATH, 'durecdial', 'gpt2')
-                dfile = resource['file']
-                build(dpath, dfile, version=resource['version'])
-                self.tok2ind = json.load(open(os.path.join(dpath, 'token2id.json'), 'r', encoding='utf-8'))
-                self.ind2tok = {idx: word for word, idx in self.tok2ind.items()}
-
-                logger.debug(f"[Load vocab from {os.path.join(dpath, 'token2id.json')}]")
-                logger.debug(f"[The size of token2index dictionary is {len(self.tok2ind)}]")
-                logger.debug(f"[The size of index2token dictionary is {len(self.ind2tok)}]")
-            elif self.language == 'en':
-                self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-            else:
-                raise NotImplementedError
-        else:
-            raise NotImplementedError
-        if self.language =='zh' and self.tokenize == 'gpt2':
-            pass
-        else:
-            if self.tokenize == 'bert':
-                self.ind2tok = self.tokenizer.ids_to_tokens
-                self.tok2ind = bidict(self.ind2tok).inverse
-            else:
-                self.tok2ind = self.tokenizer.get_vocab()
-                self.ind2tok = bidict(self.tok2ind).inverse
-
-            logger.debug(f"[Load vocab from {self.tokenizer.name_or_path}]")
-            logger.debug(f"[The size of token2index dictionary is {len(self.tok2ind)}]")
-            logger.debug(f"[The size of index2token dictionary is {len(self.ind2tok)}]")
-
-            if self.tokenize == 'bert' or self.tokenize == 'deberta' or self.tokenize == 'roberta':
-                self.special_token_idx = {
-                    'pad': self.tokenizer.pad_token_id,
-                    'start': self.tokenizer.cls_token_id,
-                    'end': self.tokenizer.sep_token_id,
-                    'unk': self.tokenizer.unk_token_id,
-                    'cls': self.tokenizer.cls_token_id,
-                    'sep': self.tokenizer.sep_token_id,
-                    'pad_entity': self.tokenizer.pad_token_id,
-                    'pad_word': self.tokenizer.pad_token_id,
-                    'pad_topic': self.tokenizer.pad_token_id,
-                }
-            elif self.tokenize == 'gpt2':
-                self.special_token_idx = {
-                    'pad': self.tokenizer.eos_token_id,
-                    'start': self.tokenizer.bos_token_id,
-                    'end': self.tokenizer.eos_token_id,
-                    'unk': self.tokenizer.unk_token_id,
-                    'cls': self.tokenizer.bos_token_id,
-                    'sep': self.tokenizer.eos_token_id,
-                    'pad_entity': self.tokenizer.eos_token_id,
-                    'pad_word': self.tokenizer.eos_token_id,
-                    'pad_topic': self.tokenizer.eos_token_id,
-                }
-            else:
-                raise NotImplementedError
-            self.unk_token_idx = self.special_token_idx['unk']
-        vocab = {
-            'tok2ind': self.tok2ind,
-            'ind2tok': self.ind2tok,
-            # 'entity2id': self.entity2id,
-            # 'id2entity': self.id2entity,
-            # 'word2id': self.word2id,
-            'vocab_size': len(self.tok2ind),
-            # 'n_entity': self.n_entity,
-            # 'n_word': self.n_word,
-        }
-        vocab.update(self.special_token_idx)
-        return vocab
 
     def _load_other_data(self):
         #! No other data now
@@ -194,13 +96,6 @@ class MyDuRecDialDataset(BaseDataset):
         for conv in tqdm(augmented_convs):
             augmented_conv_dicts.extend(self._augment_and_add(conv))
         return augmented_conv_dicts
-    
-    def _tokenize_text(self, text):
-        if hasattr(self, 'tokenizer'):
-            return self.tokenizer.encode(text)
-        text = text.replace(' ', '')
-        return [self.special_token_idx['start']] + [self.tok2ind.get(word, self.unk_token_idx) for word in text] + [self.special_token_idx['end']]
-
 
     def _convert_to_id(self, conversation):
         augmented_convs = []
@@ -221,15 +116,16 @@ class MyDuRecDialDataset(BaseDataset):
             res = re.findall(r'\[[0-9]*\]', utt)
             prefix = 0 if len(res) == 0 else len(res[0])
             utt = utt[prefix:]
-            text_token_ids = [self._tokenize_text(utt)][1:]
+            # text_token_ids = self._tokenize_text(utt)[1:]
 
             user_profile: dict = conversation['user_profile']
             user_profile = [f"我的 {key}: {','.join(value)}" if isinstance(value, list) else f"我的 {key}: {value}" for key, value in user_profile.items()]
-            user_profile = [self._tokenize_text(sent)[1:] for sent in user_profile]
+            user_profile = '\n'.join(user_profile)
+            # user_profile = [self._tokenize_text(sent)[1:] for sent in user_profile]
 
             augmented_convs.append({
                 'role': 'Seeker' if utt_role == 1 else 'Recommender',
-                'text': text_token_ids,
+                'text': utt,
                 'user_profile': user_profile,
                 'goal': conversation['goal_type_list'][utt_id],
             })
@@ -239,18 +135,18 @@ class MyDuRecDialDataset(BaseDataset):
 
     def _augment_and_add(self, raw_conv_dict):
         augmented_conv_dicts = []
-        context_tokens = []
+        context = ''
         context_goals = []
         last_rec = ''
         for conv in raw_conv_dict:
-            text_tokens = conv['text']
-            if len(context_tokens) > 0 and conv['role'] == 'Recommender':
+            text = conv['text']
+            if len(context) > 0 and conv['role'] == 'Recommender':
                 if ('推荐' not in conv['goal'] and 'recommendation' not in conv['goal']) or conv['goal'] != last_rec:
                     conv_dict = {
                         'role': conv['role'],
-                        'context_tokens': copy(context_tokens),
-                        'context_goals': [self._tokenize_text(context_goal)[1:] for context_goal in context_goals],
-                        'response': text_tokens,
+                        'context': copy(context),
+                        'context_goals': copy(context_goals),
+                        'response': copy(text),
                         'user_profile': conv['user_profile'],
                         'label': 1 if '推荐' in conv['goal'] or 'recommendation' in conv['goal'] else 0,
                     }
@@ -259,7 +155,16 @@ class MyDuRecDialDataset(BaseDataset):
             if '推荐' in conv['goal'] or 'recommendation' in conv['goal']:
                 last_rec = conv['goal']
 
-            context_tokens.append(text_tokens)
+            if self.language == 'zh':
+                if conv['role'] == 'Seeker':
+                    context += f"用户: {conv['text']}\n"
+                else:
+                    context += f"系统: {conv['text']}\n"
+            else:
+                if conv['role'] == 'Seeker':
+                    context += f"User: {conv['text']}\n"
+                else:
+                    context += f"System: {conv['text']}\n"
             context_goals.append(conv['goal'])
 
         return augmented_conv_dicts

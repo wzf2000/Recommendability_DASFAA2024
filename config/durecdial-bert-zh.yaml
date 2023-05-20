@@ -1,20 +1,16 @@
 # dataset
 dataset: DuRecDial
-language: zh # zh/en
+language: zh
 tokenize: bert
 # dataloader
-context_truncate: 256
+context_truncate: 512
 response_truncate: 30
 item_truncate: 100
 scale: 1
 # model
 model: ConvBERT
 # optim
-loss: BinaryDSCLoss
-# gamma: 5
-alpha: 2
-# pos_weight: 7
-# smooth: 1.0
+loss: BCEWithLogitsLoss
 policy:
   epoch: 5
   batch_size: 8

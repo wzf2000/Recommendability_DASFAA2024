@@ -13,13 +13,12 @@ from crslib.loss import BinaryFocalLoss
 
 class ConvGPT2Model(BaseModel):
 
-    def __init__(self, opt, device, vocab, side_data):
+    def __init__(self, opt, device, side_data):
         """
 
         Args:
             opt (dict): A dictionary record the hyper parameters.
             device (torch.device): A variable indicating which device to place the data and model.
-            vocab (dict): A dictionary record the vocabulary information.
             side_data (dict): A dictionary record the side data.
         
         """

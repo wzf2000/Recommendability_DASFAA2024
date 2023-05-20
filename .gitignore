@@ -15,4 +15,4 @@ dataset/JDDC2.1/*.pkl
 dataset/DuRecDial2.0/*.json
 dataset/DuRecDial2.0/*.pkl
 *.yaml
-!test.yaml
+!config/*.yaml
