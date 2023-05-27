@@ -66,6 +66,7 @@ def train(model: PromptForClassification, dataloader: PromptDataLoader, val_data
 def main():
     set_seed(2023)
     args = parse()
+    logger.add(f'log/{args.dataset}/{args.language if args.dataset == "DuRecDial" else args.split}_{args.model}-{args.size}_tempate={args.template}{"_z" if args.zero_shot else ""}.log', rotation="500 MB", level="INFO")
     datasets = get_datasets(args.dataset, args.language, args.split, args.zero_shot)
     logger.info(f'[task loading completed]')
     plm, tokenizer, model_config, WrapperClass = get_backbone(args.model, args.language, args.size)

@@ -55,6 +55,8 @@ def get_backbone(model_name: str, language: str, size: str) -> Tuple[PreTrainedM
         model_config = AutoConfig.from_pretrained('THUDM/chatglm-6b', trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
         WrapperClass = GLMTokenizerWrapper
+        plm.gradient_checkpointing_enable()
+        plm.enable_input_require_grads()
     else:
         raise Exception(f'Unsupported model {model_name}!')
     return plm, tokenizer, model_config, WrapperClass

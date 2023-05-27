@@ -5,6 +5,7 @@ from loguru import logger
 from copy import copy
 from typing import List
 import re
+import json
 from ..utils import read_txt_data
 
 class DuRecDialDataset(Dataset):
@@ -17,13 +18,24 @@ class DuRecDialDataset(Dataset):
         logger.info(f'[process data from {self.phase} completed]')
         logger.info(f'[{self.phase} data size: {len(self.data)}]]')
         self.dataset = []
+        pos_cnt = 0
+        # processed_dataset = []
         for i, sample in enumerate(self.data):
             self.dataset.append(InputExample(
                 guid=i,
                 text_a=sample['context'],
                 label=sample['label']
             ))
+            if sample['label'] == 1:
+                pos_cnt += 1
+            # processed_dataset.append({
+            #     'context': sample['context'],
+            #     'label': sample['label']
+            # })
+        # with open(f'datasets/DuRecDial/{self.language}_{self.phase}_processed.json', 'w', encoding='utf8') as f:
+        #     json.dump(processed_dataset, f, indent=2, ensure_ascii=False)
         # logger.info(f'[save processed data to data/{self.language}_{self.phase}_processed.json completed]')
+        logger.info(f'[pos_cnt: {pos_cnt}]')
 
     def __getitem__(self, index: int) -> InputExample:
         return self.dataset[index]

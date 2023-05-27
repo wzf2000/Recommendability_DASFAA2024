@@ -72,6 +72,11 @@ def get_template(tokenizer: PreTrainedTokenizer, language: str, template_id: int
         # replace the '0' in the template with 'zero' and '1' with 'one'
         template_text = template_text.replace('0', 'zero')
         template_text = template_text.replace('1', 'one')
+    elif language =='zh' and model_name == 'gpt2':
+        # replace the '0' in the template with 'a' and '1' with 'b'
+        template_text = template_text.replace('0', 'a')
+        template_text = template_text.replace('1', 'b')
+
     logger.info(f'[Using Template {template_id}: {template_text}]')
     return ManualTemplate(
         text=template_text,
