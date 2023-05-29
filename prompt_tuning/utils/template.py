@@ -77,7 +77,7 @@ def get_template(tokenizer: PreTrainedTokenizer, language: str, template_id: int
         template_text = template_text.replace('0', 'a')
         template_text = template_text.replace('1', 'b')
 
-    logger.info(f'[Using Template {template_id}: {template_text}]')
+    logger.info(f'Using Template {template_id}: {template_text}')
     return ManualTemplate(
         text=template_text,
         tokenizer=tokenizer
