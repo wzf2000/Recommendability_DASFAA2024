@@ -31,6 +31,13 @@ class DataTrainingArguments:
             "choices": DATASETS
         }
     )
+    dataset_language: str = field(
+        default='en',
+        metadata={
+            "help": "The language of the dataset to use: " + ", ".join(['zh', 'en']),
+            "choices": ['zh', 'en']
+        }
+    )
     dataset_config_name: Optional[str] = field(
         default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
     )

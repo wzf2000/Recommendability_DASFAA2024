@@ -50,7 +50,7 @@ def predict(trainer, predict_dataset=None):
         for dataset_name, d in predict_dataset.items():
             logger.info("*** Predict: %s ***" % dataset_name)
             predictions, labels, metrics = trainer.predict(d, metric_key_prefix="predict")
-            predictions = np.argmax(predictions, axis=2)
+            # predictions = np.argmax(predictions, axis=2)
 
             trainer.log_metrics("predict", metrics)
             trainer.save_metrics("predict", metrics)
@@ -58,7 +58,7 @@ def predict(trainer, predict_dataset=None):
     else:
         logger.info("*** Predict ***")
         predictions, labels, metrics = trainer.predict(predict_dataset, metric_key_prefix="predict")
-        predictions = np.argmax(predictions, axis=2)
+        # predictions = np.argmax(predictions, axis=2)
 
         trainer.log_metrics("predict", metrics)
         trainer.save_metrics("predict", metrics)
@@ -112,6 +112,10 @@ if __name__ == '__main__':
     elif data_args.task_name.lower() == "qa":
         assert data_args.dataset_name.lower() in QA_DATASETS
         from tasks.qa.get_trainer import get_trainer
+
+    elif data_args.task_name.lower() == "rec":
+        assert data_args.dataset_name.lower() in REC_DATASETS
+        from tasks.rec.get_trainer import get_trainer
         
     else:
         raise NotImplementedError('Task {} is not implemented. Please choose a task from: {}'.format(data_args.task_name, ", ".join(TASKS)))
@@ -138,10 +142,10 @@ if __name__ == '__main__':
     if training_args.do_train:
         train(trainer, training_args.resume_from_checkpoint, last_checkpoint)
     
-    # if training_args.do_eval:
-    #     evaluate(trainer)
+    if training_args.do_eval:
+        evaluate(trainer)
 
-    # if training_args.do_predict:
-    #     predict(trainer, predict_dataset)
+    if training_args.do_predict:
+        predict(trainer, predict_dataset)
 
    

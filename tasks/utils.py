@@ -6,11 +6,12 @@ SUPERGLUE_DATASETS = list(superglue_tasks.keys())
 NER_DATASETS = ["conll2003", "conll2004", "ontonotes"]
 SRL_DATASETS = ["conll2005", "conll2012"]
 QA_DATASETS = ["squad", "squad_v2"]
+REC_DATASETS = ['durecdial', 'jddc']
 
 
-TASKS = ["glue", "superglue", "ner", "srl", "qa"]
+TASKS = ["glue", "superglue", "ner", "srl", "qa", "rec"]
 
-DATASETS = GLUE_DATASETS + SUPERGLUE_DATASETS + NER_DATASETS + SRL_DATASETS + QA_DATASETS
+DATASETS = GLUE_DATASETS + SUPERGLUE_DATASETS + NER_DATASETS + SRL_DATASETS + QA_DATASETS + REC_DATASETS
 
 ADD_PREFIX_SPACE = {
     'bert': False,

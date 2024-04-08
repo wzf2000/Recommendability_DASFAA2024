@@ -31,6 +31,7 @@ from model.multiple_choice import (
 
 from transformers import (
     AutoConfig,
+    AutoModel,
     AutoModelForTokenClassification,
     AutoModelForSequenceClassification,
     AutoModelForQuestionAnswering,
@@ -65,6 +66,12 @@ PREFIX_MODELS = {
     "deberta-v2": {
         TaskType.TOKEN_CLASSIFICATION: DebertaV2PrefixForTokenClassification,
         TaskType.SEQUENCE_CLASSIFICATION: None,
+        TaskType.QUESTION_ANSWERING: None,
+        TaskType.MULTIPLE_CHOICE: None,
+    },
+    "chatglm": {
+        TaskType.TOKEN_CLASSIFICATION: None,
+        TaskType.SEQUENCE_CLASSIFICATION: AutoModel,
         TaskType.QUESTION_ANSWERING: None,
         TaskType.MULTIPLE_CHOICE: None,
     }
