@@ -1,0 +1,7 @@
+bidict==0.21.4
+crslab==0.1.2
+loguru==0.5.3
+numpy==1.19.5
+# torch==1.7.0
+tqdm==4.55.2
+transformers==4.4.2
