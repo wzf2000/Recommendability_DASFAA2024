@@ -48,6 +48,15 @@ class PolicyEvaluator(BaseEvaluator):
                 for each_metric, value in task_report.items():
                     self.writer.add_scalars(f'{self.reports_name[idx]}/{each_metric}', {mode: value.value()}, epoch)
         logger.info('\n' + nice_report(aggregate_unnamed_reports(reports)))
+        if mode == 'test':
+            acc = reports[0]['Accuracy'].value() if 'Accuracy' in reports[0] else 0
+            precision = reports[0]['Precision'].value() if 'Precision' in reports[0] else 0
+            recall = reports[0]['Recall'].value() if 'Recall' in reports[0] else 0
+            F1 = self.F1 if self.F1 is not None else 0
+            logger.info(f"\n{acc}\t{precision}\t{recall}\t{F1}")
+            return [acc, precision, recall, F1]
+        else:
+            return []
 
     def reset_metrics(self):
         self.acc_metrics.clear()

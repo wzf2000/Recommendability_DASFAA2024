@@ -1,0 +1,23 @@
+# dataset
+dataset: JDDC
+language: zh
+tokenize: deberta
+# dataloader
+context_truncate: 512
+response_truncate: 30
+item_truncate: 100
+scale: 1
+# model
+model: ConvDeBERTa
+# optim
+loss: BCEWithLogitsLoss
+policy:
+  epoch: 5
+  batch_size: 4
+  weight_decay: 0.01
+  optimizer:
+    name: AdamW
+    lr: !!float 1e-5
+  early_stop: true
+  stop_mode: max
+  impatience: 3

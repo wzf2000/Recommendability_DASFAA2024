@@ -16,11 +16,11 @@ class RecommendableDataLoader(BaseDataLoader):
         self.get_tokenizer()
         self.pad_token_idx = self.tokenizer.pad_token_id
 
-        self.context_truncate = opt.get('context_truncate', None)
-        self.response_truncate = opt.get('response_truncate', None)
-        self.entity_truncate = opt.get('entity_truncate', None)
-        self.word_truncate = opt.get('word_truncate', None)
-        self.item_truncate = opt.get('item_truncate', None)
+        self.context_truncate = opt.get('context_truncate', 512)
+        self.response_truncate = opt.get('response_truncate', 30)
+        self.entity_truncate = opt.get('entity_truncate', 30)
+        self.word_truncate = opt.get('word_truncate', 30)
+        self.item_truncate = opt.get('item_truncate', 30)
         logger.info(f'[Dataset length is {len(self.dataset)}]')
 
     def get_tokenizer(self) -> PreTrainedTokenizer:
@@ -35,7 +35,7 @@ class RecommendableDataLoader(BaseDataLoader):
             if self.language == 'en':
                 self.tokenizer = DebertaTokenizer.from_pretrained('microsoft/deberta-base')
             elif self.language == 'zh':
-                self.tokenizer = AutoTokenizer.from_pretrained('IDEA-CCNL/Erlangshen-DeBERTa-v2-186M-Chinese-SentencePiece', use_fast=False, cache_dir='./cache/')
+                self.tokenizer = AutoTokenizer.from_pretrained('./cache/Erlangshen-DeBERTa-v2-97M-Chinese', use_fast=False)
             else:
                 raise NotImplementedError
         elif self.tokenize == 'roberta':

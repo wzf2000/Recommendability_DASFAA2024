@@ -18,7 +18,6 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 def run():
-    set_seed(2023)
     parser = ArgumentParser()
     # Add gpu option
     parser.add_argument('--gpu', type=str, default='0', help='gpu id')
@@ -26,8 +25,11 @@ def run():
     parser.add_argument('--save', action='store_true', help='save dataset')
     parser.add_argument('--config', type=str, default='test.yaml', help='config file')
     parser.add_argument('--split', type=int, default=1, help='Dataset split number')
+    parser.add_argument('--seed', type=int, default=2023, help='random seed')
     # parser.add_argument('--interact', action='store_true', help='interact with model')
     args = parser.parse_args()
+
+    set_seed(args.seed)
 
     config = Config(args.config, args.gpu, False)
     # get_dataset()
@@ -52,7 +54,8 @@ def run():
                               restore_system=False,
                               interact=False,
                               debug=False, 
-                              tensorboard=True)
+                              tensorboard=True,
+                              seed=args.seed)
     CRS.fit()
 
 if __name__ == '__main__':

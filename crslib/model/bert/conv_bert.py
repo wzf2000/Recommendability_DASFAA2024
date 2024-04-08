@@ -26,22 +26,18 @@ class ConvBERTModel(BaseModel):
         language = opt['language']
         assert language in ['en', 'zh']
         assert opt['tokenize'] in ['bert', 'roberta']
-        if opt['tokenize'] == 'bert':
-            resource = resources[opt['tokenize']][language]
-            dpath = os.path.join(PRETRAIN_PATH, opt['tokenize'], language)
-            super().__init__(opt, device, dpath, resource)
-        elif opt['tokenize'] == 'roberta':
-            super(BaseModel, self).__init__()
-            self.opt = opt
-            self.device = device
-            self.build_model()
-        else:
-            raise NotImplementedError
+        super(BaseModel, self).__init__()
+        self.opt = opt
+        self.device = device
+        self.build_model()
 
     def build_model(self, *args, **kwargs):
         """build model"""
         if self.opt['tokenize'] == 'bert':
-            self.context_bert: BertModel = BertModel.from_pretrained(self.dpath)
+            if self.opt['language'] == 'en':
+                self.context_bert: BertModel = BertModel.from_pretrained('bert-base-cased')
+            else:
+                self.context_bert: BertModel = BertModel.from_pretrained('bert-base-chinese')
         else:
             if self.opt['language'] == 'en':
                 self.context_bert: RobertaModel = RobertaModel.from_pretrained('roberta-base')

@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 log
+results
 node_modules
 npm-debug.log
 runs

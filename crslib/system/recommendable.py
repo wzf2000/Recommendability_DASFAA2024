@@ -10,8 +10,9 @@ from ..evaluator import PolicyEvaluator
 
 class RecommendableSystem(BaseSystem):
     def __init__(self, opt, train_dataloader, valid_dataloader, test_dataloader, side_data, restore_system=False,
-                 interact=False, debug=False, tensorboard=False):
+                 interact=False, debug=False, tensorboard=False, seed=None):
         self.opt = opt
+        self.seed = seed
         if opt["gpu"] == [-1]:
             self.device = torch.device('cpu')
         elif len(opt["gpu"]) == 1:
@@ -115,7 +116,9 @@ class RecommendableSystem(BaseSystem):
             self.evaluator.reset_metrics()
             for batch in self.test_dataloader.get_recommendable_data(self.batch_size, shuffle=False):
                 self.step(batch, stage='recommendable', mode='test')
-            self.evaluator.report(mode='test')
+            metrics = self.evaluator.report(mode='test')
+            with open(f'results/{self.opt["dataset"]}.csv', 'a') as f:
+                f.write(f'{self.opt["model"]}\t{self.opt["loss"]}\t{self.seed}\t{metrics[0]:.4f}\t{metrics[1]:.4f}\t{metrics[2]:.4f}\t{metrics[3]:.4f}\n')
 
     def fit(self):
         self.train_recommendable()

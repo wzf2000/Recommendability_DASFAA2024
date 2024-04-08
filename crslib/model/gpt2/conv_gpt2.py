@@ -8,7 +8,7 @@ from crslab.config import PRETRAIN_PATH
 from crslab.model.base import BaseModel
 from crslab.model.pretrained_models import resources
 
-from crslib.loss import BinaryFocalLoss
+from crslib.loss import BinaryFocalLoss, GMHCLoss, BinaryDSCLoss
 
 
 class ConvGPT2Model(BaseModel):
@@ -24,13 +24,18 @@ class ConvGPT2Model(BaseModel):
         """
         language = opt['language']
         assert opt['tokenize'] == 'gpt2'
-        resource = resources[opt['tokenize']][language]
-        dpath = os.path.join(PRETRAIN_PATH, opt['tokenize'], language)
-        super().__init__(opt, device, dpath, resource)
+        assert language in ['en', 'zh']
+        super(BaseModel, self).__init__()
+        self.opt = opt
+        self.device = device
+        self.build_model()
 
     def build_model(self, *args, **kwargs):
         """build model"""
-        self.context_gpt2: GPT2LMHeadModel = GPT2LMHeadModel.from_pretrained(self.dpath)
+        if self.opt['language'] == 'en':
+            self.context_gpt2: GPT2LMHeadModel = GPT2LMHeadModel.from_pretrained('gpt2')
+        else:
+            self.context_gpt2: GPT2LMHeadModel = GPT2LMHeadModel.from_pretrained('IDEA-CCNL/Wenzhong-GPT2-110M')
 
         self.gpt2_hidden_size = self.context_gpt2.config.n_embd
         self.state2score = nn.Linear(self.gpt2_hidden_size, 1)
@@ -38,13 +43,25 @@ class ConvGPT2Model(BaseModel):
         if self.opt['loss'] == 'BCEWithLogitsLoss':
             if 'pos_weight' not in self.opt:
                 self.opt['pos_weight'] = 1.0
-            self.loss = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.opt['pos_weight']]).to(self.device))
+            self.loss = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.opt['pos_weight']]))
         elif self.opt['loss'] == 'BinaryFocalLoss':
             if 'gamma' not in self.opt:
                 self.opt['gamma'] = 2.0
             if 'alpha' not in self.opt:
                 self.opt['alpha'] = 0.5
             self.loss = BinaryFocalLoss(gamma=self.opt['gamma'], alpha=self.opt['alpha'])
+        elif self.opt['loss'] == 'GMHCLoss':
+            if 'bins' not in self.opt:
+                self.opt['bins'] = 10
+            if 'alpha' not in self.opt:
+                self.opt['alpha'] = 0.5
+            self.loss = GMHCLoss(bins=self.opt['bins'], alpha=self.opt['alpha'])
+        elif self.opt['loss'] == 'BinaryDSCLoss':
+            if 'alpha' not in self.opt:
+                self.opt['alpha'] = 1.0
+            if 'smooth' not in self.opt:
+                self.opt['smooth'] = 1.0
+            self.loss = BinaryDSCLoss(alpha=self.opt['alpha'], smooth=self.opt['smooth'])
         else:
             raise NotImplementedError
 

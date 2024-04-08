@@ -7,7 +7,7 @@ from transformers.models.bert.modeling_bert import BertPooler
 
 from crslab.model.base import BaseModel
 
-from crslib.loss import BinaryFocalLoss
+from crslib.loss import BinaryFocalLoss, GMHCLoss, BinaryDSCLoss
 
 
 class ConvDeBERTaModel(BaseModel):
@@ -32,7 +32,7 @@ class ConvDeBERTaModel(BaseModel):
         if self.opt['language'] == 'en':
             self.context_deberta: DebertaModel = DebertaModel.from_pretrained('microsoft/deberta-base')
         elif self.opt['language'] == 'zh':
-            self.context_deberta: DebertaModel = AutoModel.from_pretrained('IDEA-CCNL/Erlangshen-DeBERTa-v2-186M-Chinese-SentencePiece')
+            self.context_deberta: DebertaModel = AutoModel.from_pretrained('./cache/Erlangshen-DeBERTa-v2-97M-Chinese')
         else:
             raise NotImplementedError
 
@@ -43,13 +43,25 @@ class ConvDeBERTaModel(BaseModel):
         if self.opt['loss'] == 'BCEWithLogitsLoss':
             if 'pos_weight' not in self.opt:
                 self.opt['pos_weight'] = 1.0
-            self.loss = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.opt['pos_weight']]).to(self.device))
+            self.loss = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.opt['pos_weight']]))
         elif self.opt['loss'] == 'BinaryFocalLoss':
             if 'gamma' not in self.opt:
                 self.opt['gamma'] = 2.0
             if 'alpha' not in self.opt:
                 self.opt['alpha'] = 0.5
             self.loss = BinaryFocalLoss(gamma=self.opt['gamma'], alpha=self.opt['alpha'])
+        elif self.opt['loss'] == 'GMHCLoss':
+            if 'bins' not in self.opt:
+                self.opt['bins'] = 10
+            if 'alpha' not in self.opt:
+                self.opt['alpha'] = 0.5
+            self.loss = GMHCLoss(bins=self.opt['bins'], alpha=self.opt['alpha'])
+        elif self.opt['loss'] == 'BinaryDSCLoss':
+            if 'alpha' not in self.opt:
+                self.opt['alpha'] = 1.0
+            if 'smooth' not in self.opt:
+                self.opt['smooth'] = 1.0
+            self.loss = BinaryDSCLoss(alpha=self.opt['alpha'], smooth=self.opt['smooth'])
         else:
             raise NotImplementedError
 
