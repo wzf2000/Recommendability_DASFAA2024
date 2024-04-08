@@ -31,3 +31,13 @@ If you find our work useful, please do not save your star and cite our work:
   year={2024}
 }
 ```
+
+And if the `OpenPrompt` library is helpful, please also cite the following paper:
+```
+@article{ding2021openprompt,
+  title={OpenPrompt: An Open-source Framework for Prompt-learning},
+  author={Ding, Ning and Hu, Shengding and Zhao, Weilin and Chen, Yulin and Liu, Zhiyuan and Zheng, Hai-Tao and Sun, Maosong},
+  journal={arXiv preprint arXiv:2111.01998},
+  year={2021}
+}
+```
