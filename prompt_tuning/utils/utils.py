@@ -50,10 +50,11 @@ def post_log_softmax(verbalizer: One2oneVerbalizer, logits: torch.Tensor) -> tor
 
 def parse():
     parser = ArgumentParser()
+    parser.add_argument('--seed', type=int, default=2023, help='random seed')
     parser.add_argument('-d', '--dataset', type=str, default='DuRecDial', choices=['DuRecDial', 'JDDC'], help='dataset name')
     parser.add_argument('-l', '--language', type=str, default='zh', choices=['zh', 'en'], help='The language of dataset (only for DuRecDial)')
     parser.add_argument('--split', type=int, default=1, choices=[1], help='The split of dataset (only for JDDC)')
-    parser.add_argument('-m', '--model', type=str, default='bert', choices=['bert', 't5', 'gpt2', 'roberta', 'glm'], help='backbone name')
+    parser.add_argument('-m', '--model', type=str, default='bert', choices=['bert', 't5', 'gpt2', 'roberta', 'glm', 'glm2'], help='backbone name')
     parser.add_argument('-s', '--size', type=str, default='base', choices=['small', 'base', 'medium', 'large', 'xl', '3b', '11b'], help='backbone size')
     parser.add_argument('-z', '--zero_shot', action='store_true', help='Whether or not to finetune the model')
     parser.add_argument('-f', '--few_shot', action='store_true', help='Whether to use few-shot learning')
@@ -62,6 +63,8 @@ def parse():
     parser.add_argument('--few_shot_num', type=int, default=30, help='The number of few-shot examples per class when using few-shot learning')
     parser.add_argument('--times', type=int, default=1, help='The times every epoch is repeated when using few-shot learning')
     parser.add_argument('-e', '--epochs', type=int, default=5, help='number of epochs')
+    parser.add_argument('--lr', type=float, default=1e-5, help='learning rate')
+    parser.add_argument('-w', '--weight_decay', type=float, default=1e-2, help='weight decay')
     parser.add_argument('-b', '--batch_size', type=int, default=16, help='batch size')
     parser.add_argument('-t', '--template', type=int, default=0, choices=range(template_num), help='template id')
     parser.add_argument('--loss', type=str, default='ce', choices=['ce', 'wce', 'focal', 'dsc'], help='loss function')

@@ -91,28 +91,33 @@ class MultiFocalLoss(nn.Module):
         assert self.reduction in ['mean', 'sum', 'none']
 
     def forward(self, logits: torch.Tensor, target: torch.Tensor):
-        alpha = self.alpha.to(logits.device)
-        prob = torch.softmax(logits, dim=1)
-
-        if prob.dim() > 2:
-            N, C = logits.shape[:2]
-            prob = prob.view(N, C, -1)
-            prob = prob.permute(0, 2, 1).contiguous()
-            prob = prob.view(-1, C)
-
-        ori_shp = target.shape
         target = target.view(-1, 1)
+        pt = torch.softmax(logits, dim=-1)
+        logpt = torch.log_softmax(logits, dim=-1)
+        pt = pt.gather(1, target).squeeze(-1)
+        logpt = logpt.gather(1, target).squeeze(-1)
 
-        prob = prob.gather(1, target).view(-1) + self.smooth
-        logpt = torch.log(prob)
-        alpha_weight = alpha[target.squeeze().long()]
-        loss = -alpha_weight * torch.pow(torch.sub(1.0, prob), self.gamma) * logpt
+        alpha = self.alpha.to(logits.device)
+        at = alpha.gather(0, target.squeeze(-1))
+        logpt = logpt * at
+
+        loss = -1 * (1 - pt) ** self.gamma * logpt
+
+        if torch.isfinite(loss).logical_not().long().sum() != 0:
+            while True:
+                test = input('>>> ')
+                if test != 'q':
+                    try:
+                        exec(f'print({test})')
+                    except Exception as e:
+                        print(str(e))
+                else:
+                    break
 
         if self.reduction == 'mean':
             loss = loss.mean()
-        elif self.reduction == 'none':
-            loss = loss.view(ori_shp)
-        else:
+        elif self.reduction == 'sum':
             loss = loss.sum()
+
 
         return loss

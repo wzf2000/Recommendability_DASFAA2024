@@ -4,7 +4,7 @@ from openprompt.prompts import One2oneVerbalizer
 from ..prompts import GLMVerbalizer
 
 def get_verbalizer(tokenizer: PreTrainedTokenizer, classes: List[str], model_name: str, language: str) -> One2oneVerbalizer:
-    if model_name == 'glm':
+    if model_name == 'glm' or model_name == 'glm2':
         return GLMVerbalizer(
             classes=classes,
             label_words={
@@ -12,7 +12,6 @@ def get_verbalizer(tokenizer: PreTrainedTokenizer, classes: List[str], model_nam
                 'yes': '1',
             },
             tokenizer=tokenizer,
-            post_log_softmax=False,
         )
     elif model_name == 't5' and language == 'en':
         # T5 has a special token for 0
@@ -24,7 +23,6 @@ def get_verbalizer(tokenizer: PreTrainedTokenizer, classes: List[str], model_nam
                 'yes': 'one',
             },
             tokenizer=tokenizer,
-            post_log_softmax=False,
         )
     elif model_name == 'gpt2' and language == 'zh':
         # GPT2 has a special token for 0 and 1
@@ -36,7 +34,6 @@ def get_verbalizer(tokenizer: PreTrainedTokenizer, classes: List[str], model_nam
                 'yes': 'b',
             },
             tokenizer=tokenizer,
-            post_log_softmax=False,
         )
     else:
         return One2oneVerbalizer(
@@ -46,5 +43,4 @@ def get_verbalizer(tokenizer: PreTrainedTokenizer, classes: List[str], model_nam
                 'yes': '1',
             },
             tokenizer=tokenizer,
-            post_log_softmax=False,
         )

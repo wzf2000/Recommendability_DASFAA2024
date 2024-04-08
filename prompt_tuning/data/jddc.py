@@ -19,7 +19,7 @@ class JDDCDataset(Dataset):
         logger.info(f'[{self.phase} data size: {len(self.data)}]]')
         self.dataset = []
         pos_cnt = 0
-        # processed_dataset = []
+        processed_dataset = []
         for i, sample in enumerate(self.data):
             self.dataset.append(InputExample(
                 guid=i,
@@ -28,13 +28,13 @@ class JDDCDataset(Dataset):
             ))
             if sample['label'] == 1:
                 pos_cnt += 1
-            # processed_dataset.append({
-            #     'context': sample['context'],
-            #     'label': sample['label']
-            # })
-        # with open(f'datasets/JDDC/zh_{self.phase}_processed.json', 'w', encoding='utf8') as f:
-        #     json.dump(processed_dataset, f, indent=2, ensure_ascii=False)
-        # logger.info(f'[save processed data to data/zh_{self.phase}_processed.json completed]')
+            processed_dataset.append({
+                'context': sample['context'],
+                'label': sample['label']
+            })
+        with open(f'datasets/JDDC/zh_{self.phase}_processed.json', 'w', encoding='utf8') as f:
+            json.dump(processed_dataset, f, indent=2, ensure_ascii=False)
+        logger.info(f'[save processed data to data/zh_{self.phase}_processed.json completed]')
         logger.info(f'[pos_cnt: {pos_cnt}]')
 
     def __getitem__(self, index: int) -> InputExample:

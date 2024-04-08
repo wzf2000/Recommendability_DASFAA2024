@@ -35,14 +35,13 @@ def get_backbone(model_name: str, language: str, size: str) -> Tuple[PreTrainedM
             else:
                 plm, tokenizer, model_config, WrapperClass = load_plm("gpt2", f"gpt2-{size}")
     elif model_name == 'roberta':
+        assert size in ['base', 'large']
         if language == 'zh':
-            assert size in ['base', 'large']
             if size == 'base':
                 plm, tokenizer, model_config, WrapperClass = load_plm("bert", "IDEA-CCNL/Erlangshen-Roberta-110M-Sentiment")
             else:
                 plm, tokenizer, model_config, WrapperClass = load_plm("bert", "IDEA-CCNL/Erlangshen-Roberta-330M-Sentiment")
         else:
-            assert size in ['base', 'large']
             plm, tokenizer, model_config, WrapperClass = load_plm("roberta", f"roberta-{size}")
     elif model_name == 'glm':
         assert size in ['base', 'medium', 'large']
@@ -55,8 +54,21 @@ def get_backbone(model_name: str, language: str, size: str) -> Tuple[PreTrainedM
         model_config = AutoConfig.from_pretrained('THUDM/chatglm-6b', trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
         WrapperClass = GLMTokenizerWrapper
-        plm.gradient_checkpointing_enable()
-        plm.enable_input_require_grads()
+        # plm.gradient_checkpointing_enable()
+        # plm.enable_input_require_grads()
+    elif model_name == 'glm2':
+        assert size in ['base', 'medium', 'large']
+        if size == 'base':
+            plm = AutoModel.from_pretrained('THUDM/chatglm2-6b-int4', trust_remote_code=True).half()
+        elif size == 'medium':
+            plm = AutoModel.from_pretrained('THUDM/chatglm2-6b-int8', trust_remote_code=True).half()
+        else:
+            plm = AutoModel.from_pretrained('THUDM/chatglm2-6b', trust_remote_code=True).half()
+        model_config = AutoConfig.from_pretrained('THUDM/chatglm2-6b', trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True)
+        WrapperClass = GLMTokenizerWrapper
+        # plm.gradient_checkpointing_enable()
+        # plm.enable_input_require_grads()
     else:
         raise Exception(f'Unsupported model {model_name}!')
     return plm, tokenizer, model_config, WrapperClass

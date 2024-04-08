@@ -1,5 +1,6 @@
 .DS_Store
 .vscode
+*.ipynb
 log
 checkpoint
 __pycache__
